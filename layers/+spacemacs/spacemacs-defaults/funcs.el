@@ -858,7 +858,7 @@ ones created by `magit' and `dired'."
       (progn
         (kill-new directory-path)
         (message "%s" directory-path))
-    (message "WARNING: Current buffer does not have a directory!")))
+    (user-error "Current buffer is not visiting a file or directory")))
 
 (defun spacemacs/copy-file-path ()
   "Copy and show the file path of the current buffer."
@@ -867,7 +867,7 @@ ones created by `magit' and `dired'."
       (progn
         (kill-new file-path)
         (message "%s" file-path))
-    (message "WARNING: Current buffer is not attached to a file!")))
+    (user-error "Current buffer is not visiting a file")))
 
 (defun spacemacs/copy-file-name ()
   "Copy and show the file name of the current buffer."
@@ -877,7 +877,7 @@ ones created by `magit' and `dired'."
       (progn
         (kill-new file-name)
         (message "%s" file-name))
-    (message "WARNING: Current buffer is not attached to a file!")))
+    (user-error "Current buffer is not visiting a file")))
 
 (defun spacemacs/copy-buffer-name ()
   "Copy and show the name of the current buffer."
@@ -892,7 +892,7 @@ ones created by `magit' and `dired'."
       (progn
         (kill-new file-name)
         (message "%s" file-name))
-    (message "WARNING: Current buffer is not attached to a file!")))
+    (user-error "Current buffer is not visiting a file")))
 
 (defun spacemacs/copy-file-path-with-line ()
   "Copy and show the file path of the current buffer, plus line number."
@@ -901,7 +901,7 @@ ones created by `magit' and `dired'."
       (progn
         (kill-new file-path)
         (message "%s" file-path))
-    (message "WARNING: Current buffer is not attached to a file!")))
+    (user-error "Current buffer is not visiting a file")))
 
 (defun spacemacs/copy-file-path-with-line-column ()
   "Copy and show the file path of the current buffer, plus line and column number.
@@ -913,7 +913,7 @@ variable."
       (progn
         (kill-new file-path)
         (message "%s" file-path))
-    (message "WARNING: Current buffer is not attached to a file!")))
+    (user-error "Current buffer is not visiting a file")))
 
 
 
