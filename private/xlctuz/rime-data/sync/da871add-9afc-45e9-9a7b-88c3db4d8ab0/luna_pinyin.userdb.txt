@@ -1,0 +1,10 @@
+# Rime user dictionary
+#@/db_name	luna_pinyin
+#@/db_type	userdb
+#@/rime_version	1.7.3
+#@/tick	4
+#@/user_id	da871add-9afc-45e9-9a7b-88c3db4d8ab0
+fa 	發	c=1 d=0.99005 t=4
+fei ba 	非把	c=1 d=1 t=4
+wan quan 	完全	c=2 d=1.98012 t=4
+wen wen 	問問	c=1 d=1 t=4
