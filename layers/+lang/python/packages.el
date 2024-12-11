@@ -128,7 +128,6 @@
   (use-package blacken
     :defer t
     :init
-    (spacemacs//bind-python-formatter-keys)
     (when (and python-format-on-save
                (eq 'black python-formatter))
       (add-hook 'python-mode-hook 'blacken-mode))
@@ -374,6 +373,8 @@
     (spacemacs/register-repl 'python
                              'spacemacs/python-start-or-switch-repl "python")
     (spacemacs//bind-python-repl-keys)
+    (spacemacs//bind-python-formatter-keys)
+    (spacemacs//python-lsp-set-up-format-on-save)
     (add-hook 'python-mode-local-vars-hook 'spacemacs//python-setup-backend)
     (add-hook 'python-mode-hook 'spacemacs//python-default)
     :config
@@ -480,7 +481,6 @@
   (use-package yapfify
     :defer t
     :init
-    (spacemacs//bind-python-formatter-keys)
     (when (and python-format-on-save
                (eq 'yapf python-formatter))
       (add-hook 'python-mode-hook 'yapf-mode))
