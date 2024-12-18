@@ -57,7 +57,7 @@
           pyim-dcache-directory (expand-file-name "dcache/" pyim-directory)
           pyim-assistant-scheme-enable t
           default-input-method "pyim")
-    (autoload 'pyim-dict-manager-mode "pyim-dicts-manager"
+    (autoload 'pyim-dict-manager-mode "pyim-dict-manager"
       "Major mode for managing pyim dicts")
     (evilified-state-evilify-map pyim-dict-manager-mode-map
       :mode pyim-dict-manager-mode
