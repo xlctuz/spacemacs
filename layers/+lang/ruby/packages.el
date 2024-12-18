@@ -25,7 +25,7 @@
   '(
     add-node-modules-path
     bundler
-    chruby
+    (chruby :toggle (eq ruby-version-manager 'chruby))
     company
     dap-mode
     (enh-ruby-mode :toggle ruby-enable-enh-ruby-mode)
@@ -37,8 +37,8 @@
     popwin
     prettier-js
     rake
-    rbenv
-    robe
+    (rbenv :toggle (eq ruby-version-manager 'rbenv))
+    (robe :toggle (eq ruby-backend 'robe))
     rspec-mode
     rubocop
     rubocopfmt
@@ -47,7 +47,7 @@
     ruby-refactor
     ruby-test-mode
     ruby-tools
-    rvm
+    (rvm :toggle (eq ruby-version-manager 'rvm))
     seeing-is-believing
     smartparens))
 
@@ -67,7 +67,6 @@
 
 (defun ruby/init-chruby ()
   (use-package chruby
-    :if (equal ruby-version-manager 'chruby)
     :commands chruby-use-corresponding
     :defer t
     :init (spacemacs/add-to-hooks 'chruby-use-corresponding
@@ -179,12 +178,10 @@
 
 (defun ruby/init-rbenv ()
   (use-package rbenv
-    :if (equal ruby-version-manager 'rbenv)
     :defer t))
 
 (defun ruby/init-robe ()
   (use-package robe
-    :if (eq ruby-backend 'robe)
     :defer t
     :init
     (spacemacs/register-repl 'robe 'robe-start "robe")
@@ -361,7 +358,6 @@
 
 (defun ruby/init-rvm ()
   (use-package rvm
-    :if (equal ruby-version-manager 'rvm)
     :defer t
     :init
     (setq rspec-use-rvm t)
