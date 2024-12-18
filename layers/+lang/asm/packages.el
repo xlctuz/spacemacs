@@ -45,7 +45,7 @@
 
 (defun asm/post-init-electric-indent-mode ()
   (spacemacs/add-to-hooks 'asm-electric-indent-local-mode-off
-                   '(asm-mode-hook nasm-mode-hook)))
+                          '(asm-mode-hook nasm-mode-hook)))
 
 (defun asm/init-nasm-mode ()
   "Setup for built-in `nasm-mode', which could be thought as improved `asm-mode'"

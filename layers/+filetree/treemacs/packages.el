@@ -122,7 +122,7 @@
       (when (configuration-layer/package-used-p 'winum)
         ;; `0', `M-0' and `C-x w 0' are bound to `winum-select-window-0-or-10'
         (define-key winum-keymap
-          [remap winum-select-window-0-or-10] #'treemacs-select-window)
+                    [remap winum-select-window-0-or-10] #'treemacs-select-window)
         ;; replace the which-key name
         (push '((nil . "winum-select-window-0-or-10") .
                 (nil . "treemacs-select-window"))
