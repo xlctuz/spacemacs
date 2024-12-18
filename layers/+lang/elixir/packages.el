@@ -169,8 +169,8 @@
 (defun elixir/init-elixir-mode ()
   (use-package elixir-mode
     :defer t
-    :hook (elixir-mode . spacemacs//elixir-default)
-          (elixir-mode-local-vars . spacemacs//elixir-setup-backend)
+    :hook ((elixir-mode . spacemacs//elixir-default)
+           (elixir-mode-local-vars . spacemacs//elixir-setup-backend))
     :config (spacemacs/set-leader-keys-for-major-mode 'elixir-mode
               "=" 'elixir-format)))
 
