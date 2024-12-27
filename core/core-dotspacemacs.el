@@ -44,7 +44,7 @@ their configuration.")
           (or (getenv "SPACEMACSDIR")
               (if-let* ((xdg-conf (getenv "XDG_CONFIG_HOME"))
                         (xdg-conf-spacemacs (concat (file-name-as-directory xdg-conf) "spacemacs/"))
-                        (file-directory-p xdg-conf-spacemacs))
+                        ((file-directory-p xdg-conf-spacemacs)))
                   xdg-conf-spacemacs
                 "~/.spacemacs.d/")))))
     (when (file-directory-p spacemacs-dir)
