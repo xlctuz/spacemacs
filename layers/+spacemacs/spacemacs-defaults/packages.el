@@ -207,9 +207,10 @@
      ;; emacs is evil and decrees that vertical shall henceforth be horizontal
      ediff-split-window-function 'split-window-horizontally
      ediff-merge-split-window-function 'split-window-horizontally)
+    :config
     ;; show org ediffs unfolded
     (require 'outline)
-    (add-hook 'ediff-prepare-buffer-hook #'show-all)
+    (add-hook 'ediff-prepare-buffer-hook #'outline-show-all)
     ;; restore window layout when done
     (add-hook 'ediff-quit-hook #'winner-undo)))
 
