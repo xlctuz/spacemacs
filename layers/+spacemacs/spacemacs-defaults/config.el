@@ -190,7 +190,14 @@ or `nil' to only save and not visit the file."
     ;; `buffer-predicate' entry doesn't exist, create it
     (push '(buffer-predicate . spacemacs/useful-buffer-p) default-frame-alist)))
 
-(add-to-list 'window-persistent-parameters '(spacemacs-max-state . writable))
+;; It could be considered to persist more (or even all) of the window parameters
+;; here, see also https://debbugs.gnu.org/cgi/bugreport.cgi?bug=23858.
+(setq window-persistent-parameters
+      (cl-union window-persistent-parameters
+                '((spacemacs-max-state . t)
+                  (spacemacs-max-state-writable . writable)
+                  (quit-restore . t))
+                :test 'equal))
 
 ;; ---------------------------------------------------------------------------
 ;; Session
