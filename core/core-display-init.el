@@ -59,9 +59,7 @@ See `spacemacs|do-after-display-system-init'."
   "If the display system is initialized, run BODY.
 
 Otherwise, enqueue it until after the first graphical frame is
-created.
-
-BODY is evaluated with a graphical frame selected."
+created."
   `(spacemacs--call-after-display-system-init (lambda () ,@body)))
 
 (provide 'core-display-init)
