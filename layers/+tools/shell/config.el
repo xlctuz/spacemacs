@@ -64,7 +64,12 @@ for Linux/macOS), `eshell' (default for windows), `shell',
 (defvar shell-default-full-span t
   "If non-nil, the `shell' buffer spans full width of a frame.")
 
-(defvar close-window-with-terminal nil
+(define-obsolete-variable-alias
+  'close-window-with-terminal
+  'shell-close-window-with-terminal
+  "2025-02-17")
+
+(defvar shell-close-window-with-terminal nil
   "If non-nil, the window is closed when the terminal is stopped.
   This is only applied to `term' and `ansi-term' modes.")
 
