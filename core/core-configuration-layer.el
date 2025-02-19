@@ -455,7 +455,12 @@ cache folder.")
           quelpa-build-dir (expand-file-name "build" quelpa-dir)
           quelpa-persistent-cache-file (expand-file-name "cache" quelpa-dir)
           quelpa-update-melpa-p nil
-          quelpa-build-explicit-tar-format-p (eq (quelpa--tar-type) 'gnu))))
+          quelpa-build-explicit-tar-format-p (eq (quelpa--tar-type) 'gnu))
+
+    ;; Try to pre create the build dir to avoid having quelpa builds fail
+    ;; but don't aboard if this is not allowed.
+    (ignore-errors
+      (make-directory quelpa-build-dir t))))
 
 (defun configuration-layer//make-quelpa-recipe (pkg)
   "Read recipe in PKG if :fetcher is local, then turn it to a correct file recepe.
