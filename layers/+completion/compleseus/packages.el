@@ -37,14 +37,13 @@
     (nerd-icons-completion :toggle compleseus-use-nerd-icons)
     orderless
     persp-mode
+    savehist
     (selectrum :toggle (eq compleseus-engine 'selectrum))
     (vertico
      :toggle (eq compleseus-engine 'vertico)
      :location elpa)
     (vertico-posframe :toggle (and (eq compleseus-engine 'vertico)
-                                  compleseus-use-vertico-posframe))
-    (grep :location built-in)
-    wgrep))
+                                   compleseus-use-vertico-posframe))))
 
 (defun compleseus/pre-init-auto-highlight-symbol ()
   (spacemacs|use-package-add-hook auto-highlight-symbol
@@ -479,23 +478,6 @@
             (undecorated . nil)))
     (vertico-posframe-mode 1)))
 
-(defun compleseus/post-init-grep ()
-  (spacemacs/set-leader-keys-for-major-mode 'grep-mode
-    "w" 'spacemacs/compleseus-grep-change-to-wgrep-mode
-    "f" 'next-error-follow-minor-mode))
-
-(defun compleseus/init-wgrep ()
-  (evil-define-key 'normal wgrep-mode-map ",," #'spacemacs/wgrep-finish-edit)
-  (evil-define-key 'normal wgrep-mode-map ",c" #'spacemacs/wgrep-finish-edit)
-  (evil-define-key 'normal wgrep-mode-map ",a" #'spacemacs/wgrep-abort-changes)
-  (evil-define-key 'normal wgrep-mode-map ",k" #'spacemacs/wgrep-abort-changes)
-  (evil-define-key 'normal wgrep-mode-map ",q" #'spacemacs/wgrep-abort-changes-and-quit)
-  (evil-define-key 'normal wgrep-mode-map ",s" #'spacemacs/wgrep-save-changes-and-quit)
-  (evil-define-key 'normal wgrep-mode-map ",r" #'wgrep-toggle-readonly-area)
-  (evil-define-key 'normal wgrep-mode-map ",d" #'wgrep-mark-deletion)
-  (evil-define-key 'normal wgrep-mode-map ",f" #'next-error-follow-minor-mode)
-  )
-
 (defun compleseus/init-compleseus-spacemacs-help ()
   (use-package compleseus-spacemacs-help
     :defer t
@@ -515,6 +497,11 @@
     (setq
      spacemacs--persp-display-buffers-func 'spacemacs/compleseus-switch-to-buffer
      spacemacs--persp-display-perspectives-func 'spacemacs/compleseus-spacemacs-layout-layouts)))
+
+(defun compleseus/pre-init-savehist ()
+  (spacemacs|use-package-add-hook savehist
+    :post-config
+    (add-to-list 'savehist-additional-variables '(vertico-repeat-history . 50))))
 
 (defun compleseus/init-nerd-icons-completion ()
   (use-package nerd-icons-completion

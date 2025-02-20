@@ -1227,6 +1227,7 @@ Other:
     (thanks to Tristan Harmer)
   - Added ~s~ =hydra-dired-quick-sort/body= (thanks to duianto)
   - Added ~SPC p E~ for =projectile-find-references= (thanks to Alfonso Montero)
+  - Evilify =proced= (thanks to Jaehyun Yeom)
 - Improvements:
   - Inhibited golden-ratio mode from interfering with ediff windows
   - Rewrote window layout functions for ~SPC w 1~, ~SPC w 2~, ~SPC w 3~, and
@@ -2979,7 +2980,7 @@ files (thanks to Daniel Nicolai)
   flag (thanks to Keith Pinson).
 - When =org-appear= is set to be triggered manually and Spacemacs' editing mode is
   Vim or hybrid, register relevant =org-appear= commands in Evil hooks for Org
-  buffers (thanks to Keith Pinson).
+  buffers (thanks to Keith Pinson and Radosław Rowicki).
 - Provide some sane default strategies for enforcing =TODO= dependencies via
   =org-todo-dependencies-strategy= (thanks to Keith Pinson).
 - Load org-mode email integration (mu4e/notmuch) when org is loaded
@@ -3623,6 +3624,8 @@ files (thanks to Daniel Nicolai)
   (thanks to JAremko and duianto)
 - Better keybindings for ~ESC~ and ~RET~ in vterm =evil-normal-state= (thanks to kenkangxgwe)
 - Added support for multi-vterm as default terminal option
+- Added ~M-l~ for =eshell= mode and ~SPC m H~ for both =shell= and =eshell=
+  modes for =consult-history= (thanks to Jaehyun Yeom)
 **** Shell Scripts
 - Added new company-shell environment variable backend
   (thanks to Alexander-Miller)
@@ -4007,6 +4010,7 @@ files (thanks to Daniel Nicolai)
     - Fixed macOS documentation to install fonts (thanks to Sergio Morales)
     - Updated Windows section, suggest official Emacs (thanks to ghost-420)
     - Fixed dead link for creating a Spacemacs.desktop file with the Spacemacs icon (thanks to cpaulik)
+    - Fixed dead/broken link for migrating from =master= to =develop=
   - private/local/README.md
     - Improved instructions on how to use private/local directory for packages
       (thanks to Daniel Nicolai)

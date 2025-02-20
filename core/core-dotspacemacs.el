@@ -23,6 +23,9 @@
 (require 'core-load-paths)
 (require 'core-customization)
 
+(when (version<= emacs-version "28")
+  (autoload 'if-let* "subr-x"))
+
 (defconst dotspacemacs-template-directory
   (concat spacemacs-core-directory "templates/")
   "Templates directory.")
@@ -36,34 +39,40 @@ Useful for users in order to given them a hint of potential bottleneck in
 their configuration.")
 
 (defconst dotspacemacs-directory
-  (let* ((spacemacs-dir-env (getenv "SPACEMACSDIR"))
-         (spacemacs-dir (if spacemacs-dir-env
-                            (file-name-as-directory spacemacs-dir-env)
-                          "~/.spacemacs.d/")))
+  (let ((spacemacs-dir
+         (file-name-as-directory
+          (or (getenv "SPACEMACSDIR")
+              (if-let* ((xdg-conf (getenv "XDG_CONFIG_HOME"))
+                        (xdg-conf-spacemacs (concat (file-name-as-directory xdg-conf) "spacemacs/"))
+                        ((file-directory-p xdg-conf-spacemacs)))
+                  xdg-conf-spacemacs
+                "~/.spacemacs.d/")))))
     (when (file-directory-p spacemacs-dir)
       spacemacs-dir))
   "Directory containing Spacemacs customizations (defaults to nil).
 - If environment variable SPACEMACSDIR is set and that directory exists,
   use that value.
+- If environment variable XDG_CONFIG_HOME is set and its subdirectory
+  \"spacemacs\" exists, use that value.
 - Otherwise use ~/.spacemacs.d if it exists.")
 
 (defconst dotspacemacs-filepath
-  (let* ((spacemacs-dir-env (getenv "SPACEMACSDIR"))
-         (spacemacs-init (if spacemacs-dir-env
-                             (concat (file-name-as-directory spacemacs-dir-env)
-                                     "init.el")
-                           "~/.spacemacs")))
+  (let* ((spacemacs-init
+          (if dotspacemacs-directory
+              (concat dotspacemacs-directory "init.el")
+            "~/.spacemacs")))
     (if (file-regular-p spacemacs-init)
         spacemacs-init
       (let ((fallback-init "~/.spacemacs.d/init.el"))
         (if (file-regular-p fallback-init)
             fallback-init
-          spacemacs-init))))
+          "~/.spacemacs"))))
   "Filepath to Spacemacs configuration file (defaults to ~/.spacemacs).
-- If environment variable SPACEMACSDIR is set and $SPACEMACSDIR/init.el
-  exists, use that value.
+- If the `dotspacemacs-directory' exists and it contains \"init.el\" file,
+  use that value.
 - Otherwise use ~/.spacemacs if it exists.
-- Otherwise use ~/.spacemacs.d/init.el if it exists.")
+- Otherwise use ~/.spacemacs.d/init.el if it exists.
+- Otherwise use ~/.spacemacs whether it exists or not.")
 
 (spacemacs|defc dotspacemacs-distribution 'spacemacs
   "Base distribution to use. This is a layer contained in the directory
@@ -236,7 +245,7 @@ This has no effect in terminal or if \"all-the-icons\" is not installed."
   'symbol
   'spacemacs-dotspacemacs-init)
 
-(spacemacs|defc dotspacemacs-initial-scratch-message 'nil
+(spacemacs|defc dotspacemacs-initial-scratch-message nil
   "Initial message in the scratch buffer."
   '(choice (const nil) string)
   'spacemacs-dotspacemacs-init)
@@ -261,7 +270,10 @@ whenever you start Emacs."
                                       spacemacs-light)
   "List of themes, the first of the list is loaded when spacemacs starts.
 Press `SPC T n' to cycle to the next theme in the list (works great
-with 2 themes variants, one dark and one light"
+with 2 themes variants, one dark and one light). A theme from external
+package can be defined with `:package', or a theme can be defined with
+`:location' to download the theme package, refer the themes section in
+DOCUMENTATION.org for the full theme specifications."
   '(repeat (choice symbol (cons symbol sexp)))
   'spacemacs-dotspacemacs-init)
 
@@ -339,12 +351,13 @@ pressing `<leader> m`. Set it to `nil` to disable it."
   'string
   'spacemacs-dotspacemacs-init)
 
-(spacemacs|defc dotspacemacs-command-key "SPC"
+(spacemacs|defc dotspacemacs-emacs-command-key "SPC"
   "The key used for Emacs commands (M-x) (after pressing on the leader key)."
   'string
   'spacemacs-dotspacemacs-init)
-(defvaralias 'dotspacemacs-emacs-command-key 'dotspacemacs-command-key
-  "New official name for `dotspacemacs-command-key'")
+
+(define-obsolete-variable-alias 'dotspacemacs-command-key
+  'dotspacemacs-emacs-command-key "2016-01-09 (58e524)")
 
 (spacemacs|defc dotspacemacs-distinguish-gui-tab nil
   "If non nil, distinguish C-i and tab in the GUI version of Emacs."

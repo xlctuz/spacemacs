@@ -44,6 +44,7 @@
     (package-menu :location built-in)
     ;; page-break-lines is shipped with spacemacs core
     (page-break-lines :location built-in)
+    (proced :location built-in)
     (process-menu :location built-in)
     quickrun
     (recentf :location built-in)
@@ -206,11 +207,13 @@
      ;; emacs is evil and decrees that vertical shall henceforth be horizontal
      ediff-split-window-function 'split-window-horizontally
      ediff-merge-split-window-function 'split-window-horizontally)
+    :config
     ;; show org ediffs unfolded
-    (require 'outline)
-    (add-hook 'ediff-prepare-buffer-hook #'show-all)
+    (add-hook 'ediff-prepare-buffer-hook 'spacemacs//ediff-buffer-outline-show-all)
     ;; restore window layout when done
-    (add-hook 'ediff-quit-hook #'winner-undo)))
+    (add-hook 'ediff-quit-hook #'winner-undo)
+    (when (fboundp 'spacemacs//ediff-delete-temp-files)
+      (add-hook 'kill-emacs-hook #'spacemacs//ediff-delete-temp-files))))
 
 (defun spacemacs-defaults/init-eldoc ()
   (use-package eldoc
@@ -352,6 +355,15 @@
   (global-page-break-lines-mode t)
   (spacemacs|hide-lighter page-break-lines-mode))
 
+(defun spacemacs-defaults/init-proced ()
+  (use-package proced
+    :defer t
+    :config
+    (evilified-state-evilify-map proced-mode-map
+      :mode proced-mode
+      :bindings
+      "gr" 'revert-buffer)))
+
 (defun spacemacs-defaults/init-process-menu ()
   (evilified-state-evilify-map process-menu-mode-map
     :mode process-menu-mode
@@ -403,19 +415,37 @@
           savehist-additional-variables '(search-ring
                                           regexp-search-ring
                                           extended-command-history
-                                          kill-ring)
-          savehist-autosave-interval 60)
-    (savehist-mode t)))
+                                          kill-ring
+                                          kmacro-ring
+                                          log-edit-comment-ring)
+          ;; We use an idle timer instead, as saving can cause
+          ;; noticable delays with large histories.
+          savehist-autosave-interval nil)
+    (savehist-mode t)
+    (define-advice savehist-save
+        (:around (orig &rest args) spacemacs//kill-ring-no-properties)
+      "Text properties can blow up the savehist file and lead to
+excessive pauses when saving."
+      (if (memq 'kill-ring savehist-additional-variables)
+          (let ((kill-ring (mapcar #'substring-no-properties
+                                   (cl-remove-if-not #'stringp kill-ring))))
+            (apply orig args))
+        (apply orig args)))
+    (when (and (boundp 'spacemacs--savehist-idle-timer)
+               (timerp spacemacs--savehist-idle-timer))
+      (cancel-timer spacemacs--savehist-idle-timer))
+    (setq spacemacs--savehist-idle-timer
+          (run-with-idle-timer
+           spacemacs-savehist-autosave-idle-interval
+           spacemacs-savehist-autosave-idle-interval
+           #'savehist-autosave))))
 
 (defun spacemacs-defaults/init-saveplace ()
   (use-package saveplace
     :init
-    (if (fboundp 'save-place-mode)
-        ;; Emacs 25 has a proper mode for `save-place'
-        (save-place-mode)
-      (setq save-place t))
     ;; Save point position between sessions
-    (setq save-place-file (concat spacemacs-cache-directory "places"))))
+    (setq save-place-file (concat spacemacs-cache-directory "places"))
+    (save-place-mode)))
 
 (defun spacemacs-defaults/init-subword ()
   (use-package subword
@@ -466,10 +496,6 @@
   (use-package whitespace
     :defer t
     :init
-    (when dotspacemacs-show-trailing-whitespace
-      (set-face-attribute
-       'trailing-whitespace nil
-       :background (face-attribute 'font-lock-comment-face :foreground)))
     (add-hook 'prog-mode-hook 'spacemacs//trailing-whitespace)
     (add-hook 'text-mode-hook 'spacemacs//trailing-whitespace)
 

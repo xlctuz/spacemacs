@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2011-2024 Donald Ephraim Curtis
 ;; Copyright (C) 2012-2024 Steve Purcell
-;; Copyright (C) 2016-2024 Jonas Bernoulli
+;; Copyright (C) 2016-2025 Jonas Bernoulli
 ;; Copyright (C) 2009 Phil Hagelberg
 
 ;; Author: Donald Ephraim Curtis <dcurtis@milkbox.net>
@@ -142,8 +142,7 @@ then that overrides the value set here."
   :group 'package-build
   :type 'hook
   :options (list #'package-build-tag-version
-                 #'package-build-header-version
-                 #'package-build-pkg-version))
+                 #'package-build-header-version))
 
 (defcustom package-build-snapshot-version-functions
   (list #'package-build-timestamp-version)
@@ -184,25 +183,12 @@ If nil (the default), then all packages are build."
   #'package-build--build-package
   "Low-level function used to build a package.
 
-The default, `package-build--build-package', builds all packages the
-same way.  Metadata is extracted from the library whose name matches
-the name of the package.  The `NAME-pkg.el' file is not used as an
-input.  The package is distributed as a tarball, containing at least
-that library and a generated `NAME-pkg.el' file.
-
-Melpa still uses `package-build--build-multi-file-package'.
-Like the above function it uses a tarball for all packages, but it
-extracts metadata from both the main library and the `NAME-pkg.el'
-file, with non-nil values from the latter taking precedence.
-
-In the distant past, either `package-build--multi-file-package' or
-`package-build--single-file-package' were used by Melpa, depending on
-the number of libraries.  Set this variable to nil to do that again."
+The default, `package-build--build-package', extracts metadata from
+the library whose name matches the name of the package, and creates
+a tarball, containing at least that library and \"NAME-pkg.el\", which
+is generated."
   :group 'package-build
-  :type '(choice (const package-build--build-package)
-                 (const package-build--build-multi-file-package)
-                 (const nil)
-                 function))
+  :type '(choice (const package-build--build-package) function))
 
 (defcustom package-build-run-recipe-org-exports nil
   "Whether to export the files listed in the `:org-exports' recipe slot.
@@ -304,7 +290,7 @@ disallowed."
 (defvar package-build--use-sandbox (eq system-type 'gnu/linux)
   "Whether to run untrusted code using the \"bubblewrap\" sandbox.
 \"bubblewrap\" is only available on Linux, where the sandbox is
-enabled by default, to avoid accidentially not using it.")
+enabled by default, to avoid accidentally not using it.")
 
 (defvar package-build--sandbox-readonly-binds
   '("/bin" "/lib" "/lib64" "/usr"    ;fhs
@@ -438,8 +424,15 @@ or snapshots are build.")
                           "--abbrev=12" "--match" tag rev))
     (car (process-lines "git" "rev-parse" "--short=12" rev))))
 
-(cl-defmethod package-build--revdesc ((_rcp package-hg-recipe) rev &optional _tag)
-  rev)
+(cl-defmethod package-build--revdesc ((_rcp package-hg-recipe) rev &optional tag)
+  ;; Cannot use "{shortest(node, minlength=12)}" because that results
+  ;; in "hg: parse error: can't use a key-value pair in this context".
+  (car (process-lines
+        "hg" "id" "--id" "--rev" rev "--template"
+        (if tag
+            (format "{latesttag('%s') %% '{tag}-{distance}-m{short(node)}'}\n"
+                    tag)
+          "{short(node)}\n"))))
 
 ;;;; Tag
 
@@ -472,7 +465,7 @@ Return (COMMIT-HASH COMMITTER-DATE VERSION-STRING REVDESC TAG) or nil."
   (process-lines "git" "tag" "--list"))
 
 (cl-defmethod package-build--list-tags ((_rcp package-hg-recipe))
-  (process-lines "hg" "tags" "--quiet"))
+  (delete "tip" (process-lines "hg" "tags" "--quiet")))
 
 (define-obsolete-function-alias 'package-build-get-tag-version
   'package-build-tag-version "Package-Build 5.0.0")
@@ -550,6 +543,8 @@ Return (COMMIT-HASH COMMITTER-DATE VERSION-STRING REVDESC) or nil."
 (defun package-build-pkg-version (rcp)
   "Determine version specified in the \"NAME-pkg.el\" file.
 Return (COMMIT-HASH COMMITTER-DATE VERSION-STRING REVDESC) or nil."
+  (declare (obsolete "extract version from tag and/or main library instead."
+                     "Package-Build 5.0.0"))
   (and-let* ((file (package-build--pkgfile rcp)))
     (let ((regexp (package-build--version-regexp rcp))
           commit date version)
@@ -654,8 +649,6 @@ VERSION-STRING has the format \"%Y%m%d.%H%M\"."
 (defun package-build-release+timestamp-version (rcp)
   "Determine version string in the \"RELEASE.0.TIMESTAMP\" format for RCP.
 
-*Experimental* This function is still subject to change.
-
 Use `package-build-release-version-functions' to determine
 RELEASE.  TIMESTAMP is the COMMITTER-DATE for the identified
 last relevant commit, using the format \"%Y%m%d.%H%M\".
@@ -687,8 +680,6 @@ Return (COMMIT-HASH COMMITTER-DATE VERSION-STRING REVDESC) or nil."
 
 (defun package-build-release+count-version (rcp &optional single-count)
   "Determine version string in the \"RELEASE.0.COUNT\" format for RCP.
-
-*Experimental* This function is still subject to change.
 
 Use `package-build-release-version-functions' to determine
 RELEASE.  COUNT is the number of commits since RELEASE until the
@@ -826,8 +817,6 @@ Return (COMMIT-HASH COMMITTER-DATE VERSION-STRING REVDESC) or nil.
 
 (defun package-build-fallback-count-version (rcp)
   "Determine version string in the \"0.0.0.COUNT\" format for RCP.
-
-*Experimental* This function is still subject to change.
 
 This function implements a fallback that can be used on the
 release channel, for packages that don't do releases.  It should
@@ -989,7 +978,7 @@ Use a sandbox if `package-build--use-sandbox' is non-nil."
 ;;; Generate Files
 
 (defvar package-build--extras
-  '((:url url)
+  '((:url webpage)
     (:commit commit)
     (:revdesc revdesc)
     (:keywords keywords)
@@ -1247,10 +1236,12 @@ is the same as the value of `export_file_name'."
                    (package-read-from-string
                     (string-join require-lines " ")))))))
         (oset rcp webpage
-              (if (fboundp 'lm-website)
-                  (lm-website)
-                (with-no-warnings
-                  (lm-homepage))))
+              (or (if (fboundp 'lm-website)
+                      (lm-website)
+                    (with-no-warnings
+                      (lm-homepage)))
+                  (and-let* ((format (oref rcp repopage-format)))
+                    (format format (oref rcp repo)))))
         (oset rcp keywords (lm-keywords-list))
         (oset rcp maintainers
               (if (fboundp 'lm-maintainers)
@@ -1262,6 +1253,8 @@ is the same as the value of `export_file_name'."
 
 (defun package-build--extract-from-package (rcp files)
   "Store information from the \"*-pkg.el\" file from FILES in RCP."
+  (declare (obsolete "exclusively extract metadata from main library instead."
+                     "Package-Build 5.0.0"))
   (let* ((name (oref rcp name))
          (file (concat name "-pkg.el"))
          (file (or (car (rassoc file files)) file)))
@@ -1558,20 +1551,15 @@ in `package-build-archive-dir'."
                      (targets (oref rcp make-targets)))
             (package-build--message "Running make %s" (string-join targets " "))
             (apply #'package-build--call-sandboxed rcp "make" targets))
-          (let ((files (package-build-expand-files-spec rcp t)))
-            (cond
-             ((= (length files) 0)
-              (package-build--error rcp
-                "Unable to find files matching recipe patterns"))
-             (package-build-build-function
-              (funcall package-build-build-function rcp files))
-             ((= (length files) 1)
-              (package-build--build-single-file-package rcp files))
-             (t
-              (package-build--build-multi-file-package rcp files)))
-            (when package-build-badge-data
-              (package-build--write-badge-image
-               name version package-build-archive-dir))))
+          (if-let ((files (package-build-expand-files-spec rcp t)))
+              (funcall (or package-build-build-function
+                           'package-build--legacy-build)
+                       rcp files)
+            (package-build--error rcp
+              "Unable to find files matching recipe patterns"))
+          (when package-build-badge-data
+            (package-build--write-badge-image
+             name version package-build-archive-dir)))
       (package-build--cleanup rcp))))
 
 (defun package-build--build-package (rcp files)
@@ -1594,7 +1582,16 @@ in `package-build-archive-dir'."
         (delete-directory tmpdir t nil)))
     (package-build--write-archive-entry rcp)))
 
+(defun package-build--legacy-build (rcp files)
+  (declare (obsolete package-build--build-package "Package-Build 5.0.0"))
+  (with-suppressed-warnings ((obsolete package-build--build-single-file-package
+                                       package-build--build-multi-file-package))
+    (if (= (length files) 1)
+        (package-build--build-single-file-package rcp files)
+      (package-build--build-multi-file-package rcp files))))
+
 (defun package-build--build-single-file-package (rcp files)
+  (declare (obsolete package-build--build-package "Package-Build 5.0.0"))
   (oset rcp tarballp nil)
   (pcase-let* (((eieio name version) rcp)
                (file (caar files))
@@ -1613,6 +1610,7 @@ in `package-build-archive-dir'."
     (package-build--write-archive-entry rcp)))
 
 (defun package-build--build-multi-file-package (rcp files)
+  (declare (obsolete package-build--build-package "Package-Build 5.0.0"))
   (pcase-let* (((eieio name version) rcp)
                (tmpdir (file-name-as-directory (make-temp-file name t)))
                (target (expand-file-name (concat name "-" version) tmpdir)))
@@ -1621,7 +1619,8 @@ in `package-build-archive-dir'."
       (package-build--error name
         "%s[-pkg].el matching package name is missing" name))
     (package-build--extract-from-library rcp files)
-    (package-build--extract-from-package rcp files)
+    (with-suppressed-warnings ((obsolete package-build--extract-from-package))
+      (package-build--extract-from-package rcp files))
     (unless package-build--inhibit-build
       (unwind-protect
           (progn
@@ -1818,7 +1817,7 @@ a package."
   (with-temp-file file
     (insert
      (json-encode
-      (cl-mapcan
+      (mapcan
        (lambda (name)
          (with-demoted-errors "Recipe error: %S"
            (and (package-recipe-lookup name)
@@ -1836,10 +1835,10 @@ a package."
   "Convert INFO so that it can be serialize to JSON in the desired shape."
   (pcase-let ((`(,ver ,deps ,desc ,type . (,props)) (append info nil)))
     (list :ver ver
-          :deps (cl-mapcan (lambda (dep)
-                             (list (intern (format ":%s" (car dep)))
-                                   (cadr dep)))
-                           deps)
+          :deps (mapcan (lambda (dep)
+                          (list (intern (format ":%s" (car dep)))
+                                (cadr dep)))
+                        deps)
           :desc desc
           :type type
           :props props)))
@@ -1853,31 +1852,31 @@ a package."
                     (format "%s <%s>" name mail)
                   (or name
                       (format "<%s>" mail))))))
-    (cl-mapcan (lambda (entry)
-                 (list (intern (format ":%s" (car entry)))
-                       (let* ((info (cdr entry))
-                              (extra (aref info 4))
-                              (maintainer (assq :maintainer extra))
-                              (maintainers (assq :maintainers extra))
-                              (authors (assq :authors extra)))
-                         (when maintainer
-                           (setcdr maintainer
-                                   (format-person (cdr maintainer))))
-                         (when maintainers
-                           (if (cl-every #'listp (cdr maintainers))
-                               (setcdr maintainers
-                                       (mapcar #'format-person
-                                               (cdr maintainers)))
-                             (setq maintainers ; silence >= 30 compiler
-                                   (assq-delete-all :maintainers extra))))
-                         (when authors
-                           (if (cl-every #'listp (cdr authors))
-                               (setcdr authors
-                                       (mapcar #'format-person (cdr authors)))
-                             (setq authors ; silence >= 30 compiler
-                                   (assq-delete-all :authors extra))))
-                         (package-build--pkg-info-for-json info))))
-               (package-build-archive-alist))))
+    (mapcan (lambda (entry)
+              (list (intern (format ":%s" (car entry)))
+                    (let* ((info (cdr entry))
+                           (extra (aref info 4))
+                           (maintainer (assq :maintainer extra))
+                           (maintainers (assq :maintainers extra))
+                           (authors (assq :authors extra)))
+                      (when maintainer
+                        (setcdr maintainer
+                                (format-person (cdr maintainer))))
+                      (when maintainers
+                        (if (cl-every #'listp (cdr maintainers))
+                            (setcdr maintainers
+                                    (mapcar #'format-person
+                                            (cdr maintainers)))
+                          (setq maintainers ; silence >= 30 compiler
+                                (assq-delete-all :maintainers extra))))
+                      (when authors
+                        (if (cl-every #'listp (cdr authors))
+                            (setcdr authors
+                                    (mapcar #'format-person (cdr authors)))
+                          (setq authors ; silence >= 30 compiler
+                                (assq-delete-all :authors extra))))
+                      (package-build--pkg-info-for-json info))))
+            (package-build-archive-alist))))
 
 (defun package-build-archive-alist-as-json (file)
   "Dump the build packages list to FILE as json."

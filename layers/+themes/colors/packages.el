@@ -25,7 +25,7 @@
   '(
     ;; not working well for now
     ;; rainbow-blocks
-    nyan-mode
+    (nyan-mode :toggle colors-enable-nyan-cat-progress-bar)
     color-identifiers-mode
     rainbow-identifiers
     rainbow-mode))
@@ -37,15 +37,14 @@
 
 (defun colors/init-nyan-mode ()
   (use-package nyan-mode
-    :if colors-enable-nyan-cat-progress-bar
     :config
     (setq nyan-wavy-trail t)
     (setq nyan-animate-nyancat t)
     (nyan-mode)
     ;; explicitly re-enable the cat for the first GUI client
     (spacemacs|do-after-display-system-init
-     (nyan-mode -1)
-     (nyan-mode))
+      (nyan-mode -1)
+      (nyan-mode))
 
     (spacemacs|add-toggle nyan-cat-progress-bar
       :mode nyan-mode
@@ -93,9 +92,7 @@
                                                   font-lock-keyword-face
                                                   font-lock-function-name-face
                                                   font-lock-variable-name-face))
-    (define-advice spacemacs/post-theme-init (:after (&rest _) colors/post-theme-init)
-      "Adjust lightness and brightness of rainbow-identifiers on post theme init."
-      (colors//tweak-theme-colors spacemacs--cur-theme))
+    (add-hook 'spacemacs-post-theme-change-hook #'colors//tweak-theme-colors)
     ;; key bindings
     (spacemacs/declare-prefix "Ci" "colors-identifiers")
     (spacemacs|add-toggle rainbow-identifier
@@ -122,7 +119,7 @@
     (spacemacs/set-leader-keys "Cis" 'colors/start-change-color-saturation)
     (spacemacs/set-leader-keys "Cil" 'colors/start-change-color-lightness)
     ;; tweak colors of current theme
-    (colors//tweak-theme-colors spacemacs--cur-theme)
+    (colors//tweak-theme-colors)
     (when (eq 'all colors-colorize-identifiers)
       (global-rainbow-identifiers-mode))))
 

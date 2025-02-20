@@ -36,18 +36,18 @@ This document is intended as a tutorial for users who are interested in writing
 their first configuration layer, whether for private use or for contributing
 upstream. It should help clear up some confusion regarding how layers work and
 how Spacemacs (and Emacs) loads packages. For an overview of configuration
-layers with descriptions see [[https://develop.spacemacs.org/layers/LAYERS.html][Spacemacs layers list]].
+layers with descriptions see [[https://spacemacs.org/layers/LAYERS.html][Spacemacs layers list]].
 
 * Nomenclature
 Layers and packages. What gives?
-- A set of Emacs Lisp files that, taken together, provide some
-  feature. Packages may be available on a package repository, such as ELPA or
-  MELPA or on a third-party service provider (such as github) or even
-  locally on the disk.
-- A collected unit of configuration that can be enabled (or disabled)
-  in Spacemacs. A layer typically brings together one or more packages, as
-  well as the glue configuration code required to make them play well with
-  each other and Spacemacs in general.
+- Package :: A set of Emacs Lisp files that, taken together, provide some
+             feature. Packages may be available on a package repository, such as ELPA or
+             MELPA or on a third-party service provider (such as github) or even
+             locally on the disk.
+- Layer :: A collected unit of configuration that can be enabled (or disabled)
+           in Spacemacs. A layer typically brings together one or more packages, as
+           well as the glue configuration code required to make them play well with
+           each other and Spacemacs in general.
 
 Before writing a layer, it is helpful to consider what you are trying to
 achieve. Is there a package that provides the functionality you are after, and
@@ -276,11 +276,11 @@ more.
 * Anatomy of a layer
 A layer is simply a folder somewhere in Spacemacs's layer search path that
 usually contains these files (listed in loading order).
-- declare additional layers
-- the packages list and configuration
-- all functions used in the layer should be declared here
-- layer specific configuration
-- general key bindings
+- =layers.el= :: declare additional layers
+- =packages.el= :: the packages list and configuration
+- =funcs.el= :: all functions used in the layer should be declared here
+- =config.el= :: layer specific configuration
+- =keybindings.el= :: general key bindings
 
 Additionally, for each local package (see the next section), there should be a
 folder =<layer>/local/<package>/= containing the source code for that package.

@@ -54,6 +54,7 @@
     (vimish-fold :toggle (eq 'vimish dotspacemacs-folding-method))
     (evil-vimish-fold :toggle (eq 'vimish dotspacemacs-folding-method))
     (evil-easymotion :toggle (memq dotspacemacs-editing-style '(vim hybrid)))
+    wgrep
     ws-butler))
 
 ;; Initialization of packages
@@ -110,21 +111,12 @@
   (use-package dired-quick-sort
     :defer t
     :init
-    (spacemacs|add-transient-hook dired-mode-hook
-      (lambda ()
-        (let ((dired-quick-sort-suppress-setup-warning 'message))
-          (dired-quick-sort-setup))))
+    (define-advice dired-noselect (:before (&rest _) quick-sort-setup)
+      (let ((dired-quick-sort-suppress-setup-warning 'message))
+        (dired-quick-sort-setup))
+      (advice-remove 'dired-noselect 'dired-noselect@quick-sort-setup))
     :config
-    (evil-define-key 'normal dired-mode-map "s" 'hydra-dired-quick-sort/body)
-    ;; workaround for https://gitlab.com/xuhdev/dired-quick-sort/-/issues/14
-    (define-advice dired-sort-toggle (:before ())
-      "Recover `dired-actual-switches' with `dired-listing-switches' when long
-      option \"--sort=...\" exists, and convert \"--sort=time\" to \"-t\"."
-      (when (string-match-p "--sort=" dired-actual-switches)
-        (setq dired-actual-switches
-              (concat dired-listing-switches
-                      (when (string-match-p "--sort=time" dired-actual-switches)
-                        " -t")))))))
+    (evil-define-key 'normal dired-mode-map "s" 'hydra-dired-quick-sort/body)))
 
 (defun spacemacs-editing/init-drag-stuff ()
   (use-package drag-stuff
@@ -664,3 +656,18 @@ See variable `undo-fu-session-directory'." dir))
     :init
     (setq unkillable-scratch-do-not-reset-scratch-buffer t)
     (unkillable-scratch dotspacemacs-scratch-buffer-unkillable)))
+
+(defun spacemacs-editing/init-wgrep ()
+  (spacemacs/set-leader-keys-for-major-mode 'grep-mode
+    "s" 'wgrep-save-all-buffers
+    "w" 'spacemacs/grep-change-to-wgrep-mode
+    "f" 'next-error-follow-minor-mode)
+  (evil-define-key 'normal wgrep-mode-map ",," #'spacemacs/wgrep-finish-edit)
+  (evil-define-key 'normal wgrep-mode-map ",c" #'spacemacs/wgrep-finish-edit)
+  (evil-define-key 'normal wgrep-mode-map ",a" #'spacemacs/wgrep-abort-changes)
+  (evil-define-key 'normal wgrep-mode-map ",k" #'spacemacs/wgrep-abort-changes)
+  (evil-define-key 'normal wgrep-mode-map ",q" #'spacemacs/wgrep-abort-changes-and-quit)
+  (evil-define-key 'normal wgrep-mode-map ",s" #'spacemacs/wgrep-save-changes-and-quit)
+  (evil-define-key 'normal wgrep-mode-map ",r" #'wgrep-toggle-readonly-area)
+  (evil-define-key 'normal wgrep-mode-map ",d" #'wgrep-mark-deletion)
+  (evil-define-key 'normal wgrep-mode-map ",f" #'next-error-follow-minor-mode))

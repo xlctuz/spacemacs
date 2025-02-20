@@ -24,32 +24,43 @@
 (defvar spacemacs--after-display-system-init-list '()
   "List of functions to be run after the display system is initialized.")
 
-(define-advice server-create-window-system-frame
-    (:after (&rest _) spacemacs-init-display)
-  "After Emacs server creates a frame, run functions queued in
-`SPACEMACS--AFTER-DISPLAY-SYSTEM-INIT-LIST' to do any setup that needs to have
-the display system initialized."
-  (dolist (fn (reverse spacemacs--after-display-system-init-list))
-    (funcall fn))
-  (advice-remove 'server-create-window-system-frame
-                 #'server-create-window-system-frame@spacemacs-init-display))
+(defvar spacemacs--display-system-initialized-p nil)
+
+(defun spacemacs//init-window-frame (frame)
+  "After Emacs creates a window frame FRAME, run enqueued functions.
+
+Functions are called with FRAME selected.
+
+Queued functions are added to
+`spacemacs--after-display-system-init-list' and are run once,
+only after the display system has been initialized."
+  (when (display-graphic-p frame)
+    (setq spacemacs--display-system-initialized-p t)
+    (dolist (f (reverse spacemacs--after-display-system-init-list))
+      (with-demoted-errors "spacemacs|do-after-display-system-init: %S"
+        (with-selected-frame frame
+          (funcall f))))
+    (remove-hook 'after-make-frame-functions #'spacemacs//init-window-frame)))
+
+(add-hook 'after-make-frame-functions #'spacemacs//init-window-frame)
+
+(defun spacemacs--call-after-display-system-init (func)
+  "Call FUNC with no arguments once the display system is initialized.
+
+See `spacemacs|do-after-display-system-init'."
+  (if spacemacs--display-system-initialized-p
+      (funcall func)
+    (push func spacemacs--after-display-system-init-list)
+    ;; `spacemacs--display-system-initialized-p' may be nil even if the initial
+    ;; frame is graphical.
+    (spacemacs//init-window-frame (selected-frame))))
 
 (defmacro spacemacs|do-after-display-system-init (&rest body)
-  "If the display-system is initialized, run `BODY', otherwise,
-add it to a queue of actions to perform after the first graphical frame is
+  "If the display system is initialized, run BODY.
+
+Otherwise, enqueue it until after the first graphical frame is
 created."
-  `(let ((init (cond ((boundp 'ns-initialized) ns-initialized)
-                     ;; w32-initialized gets set too early, so
-                     ;; if we're on Windows, check the list of fonts
-                     ;; instead (this is nil until the graphics system
-                     ;; is initialized)
-                     ((boundp 'w32-initialized) (font-family-list))
-                     ((boundp 'x-initialized) x-initialized)
-                     ;; fallback to normal loading behavior only if in a GUI
-                     (t (display-graphic-p)))))
-     (if init
-         (progn
-           ,@body)
-       (push (lambda () ,@body) spacemacs--after-display-system-init-list))))
+  (declare (indent defun))
+  `(spacemacs--call-after-display-system-init (lambda () ,@body)))
 
 (provide 'core-display-init)

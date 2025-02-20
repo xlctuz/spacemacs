@@ -73,6 +73,7 @@
     - [[#default-theme][Default theme]]
     - [[#choosing-themes][Choosing themes]]
       - [[#themes-transient-state][Themes Transient State]]
+    - [[#external-theme][External theme]]
     - [[#browsing-themes][Browsing themes]]
     - [[#notes][Notes]]
   - [[#font][Font]]
@@ -447,7 +448,7 @@ Example:
 #+END_SRC
 
 **** Overriding a layer package
-See [[https://develop.spacemacs.org/doc/FAQ.html#how-to-override-a-layer-package][this answer in the FAQ's]].
+See [[https://spacemacs.org/doc/FAQ.html#how-to-override-a-layer-package][this answer in the FAQ's]].
 
 *** Without a layer
 Sometimes a layer can be an unnecessary overhead, this is the case if you just
@@ -1205,6 +1206,17 @@ You can cycle between the themes declared in =dotspacemacs-themes= with
 | ~p~ or ~<left>~  | change to the previous theme                  |
 | ~t~ or ~<up>~    | open helm-themes to select an installed theme |
 
+*** External theme
+For an external theme from a package, please add the theme and its package into
+the =dotspacemacs-themes=, then the Spacemacs will install the package and apply
+the theme. Here is an example:
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default dotspacemacs-themes
+                '((humanoid-light :package humanoid-themes)
+                  spacemacs-dark))
+#+END_SRC
+
 *** Browsing themes
 You can see samples of all themes included in the =themes-megapack= layer
 in this [[http://themegallery.robdor.com][theme gallery]] from [[https://twitter.com/robmerrell][Rob Merrell]].
@@ -1604,9 +1616,9 @@ squared symbols like =🅿=.
 | =none=        | =ⓔ=     | e     | [[https://github.com/Somelauw/evil-org-mode][evil-org]] mode                                                        |
 | ~SPC t E e~   | =Ⓔe=    | Ee    | emacs editing style (holy mode)                                      |
 | ~SPC t E h~   | =Ⓔh=    | Eh    | hybrid editing style (hybrid mode)                                   |
-| ~SPC t f~     | =ⓕ=     | f     | fill-column-indicator mode                                           |
+| ~SPC t f~     | =ⓕ=     | f     | display-fill-column-indicator mode                                   |
 | ~SPC t F~     | =Ⓕ=     | F     | auto-fill mode                                                       |
-| ~SPC t G~     | =Ⓖ=     | G     | [[https://develop.spacemacs.org/layers/+tags/gtags/README.html][ggtags]] mode                                                          |
+| ~SPC t G~     | =Ⓖ=     | G     | [[https://spacemacs.org/layers/+tags/gtags/README.html][ggtags]] mode                                                          |
 | ~SPC t g~     | =ⓖ=     | g     | [[https://github.com/roman/golden-ratio.el][golden-ratio]] mode                                                    |
 | ~SPC t h i~   | =ⓗi=    | hi    | toggle highlight indentation levels                                  |
 | ~SPC t h c~   | =ⓗc=    | hc    | toggle highlight indentation current column                          |

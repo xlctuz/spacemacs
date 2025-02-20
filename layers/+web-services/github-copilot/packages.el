@@ -22,11 +22,11 @@
 
 
 (defconst github-copilot-packages
-  '((copilot :location (recipe
-                         :fetcher github
-                         :repo "copilot-emacs/copilot.el"
-                         :files ("*.el" "dist")))))
+  '((copilot)))
 
 (defun github-copilot/init-copilot ()
   (use-package copilot
+    :custom
+    (copilot-enable-predicates '(spacemacs//copilot-enable-predicate
+                                 copilot--buffer-changed))
     :defer t))

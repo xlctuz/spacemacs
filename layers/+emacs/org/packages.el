@@ -41,11 +41,7 @@
     (org-vcard :toggle org-enable-org-contacts-support)
     (org-brain :toggle org-enable-org-brain-support)
     (org-expiry :location built-in)
-    ;; temporarily point org-journal to dalanicolai fork until dalanicolai's
-    ;; PR's https://github.com/bastibe/org-journal/pulls get merged
-    (org-journal
-     :location (recipe :fetcher github :repo "dalanicolai/org-journal")
-     :toggle org-enable-org-journal-support)
+    (org-journal :toggle org-enable-org-journal-support)
     org-download
     (org-jira :toggle org-enable-jira-support)
     org-mime
@@ -458,30 +454,14 @@ Will work on both org-mode and any mode that accepts plain html."
 
     ;; Evilify the calendar tool on C-c .
     (unless (eq 'emacs dotspacemacs-editing-style)
-      (define-key org-read-date-minibuffer-local-map (kbd "M-h")
-                  (lambda () (interactive)
-                    (org-eval-in-calendar '(calendar-backward-day 1))))
-      (define-key org-read-date-minibuffer-local-map (kbd "M-l")
-                  (lambda () (interactive)
-                    (org-eval-in-calendar '(calendar-forward-day 1))))
-      (define-key org-read-date-minibuffer-local-map (kbd "M-k")
-                  (lambda () (interactive)
-                    (org-eval-in-calendar '(calendar-backward-week 1))))
-      (define-key org-read-date-minibuffer-local-map (kbd "M-j")
-                  (lambda () (interactive)
-                    (org-eval-in-calendar '(calendar-forward-week 1))))
-      (define-key org-read-date-minibuffer-local-map (kbd "M-H")
-                  (lambda () (interactive)
-                    (org-eval-in-calendar '(calendar-backward-month 1))))
-      (define-key org-read-date-minibuffer-local-map (kbd "M-L")
-                  (lambda () (interactive)
-                    (org-eval-in-calendar '(calendar-forward-month 1))))
-      (define-key org-read-date-minibuffer-local-map (kbd "M-K")
-                  (lambda () (interactive)
-                    (org-eval-in-calendar '(calendar-backward-year 1))))
-      (define-key org-read-date-minibuffer-local-map (kbd "M-J")
-                  (lambda () (interactive)
-                    (org-eval-in-calendar '(calendar-forward-year 1)))))
+      (define-key org-read-date-minibuffer-local-map (kbd "M-h") #'org-calendar-backward-day)
+      (define-key org-read-date-minibuffer-local-map (kbd "M-l") #'org-calendar-forward-day)
+      (define-key org-read-date-minibuffer-local-map (kbd "M-k") #'org-calendar-backward-week)
+      (define-key org-read-date-minibuffer-local-map (kbd "M-j") #'org-calendar-forward-week)
+      (define-key org-read-date-minibuffer-local-map (kbd "M-H") #'org-calendar-backward-month)
+      (define-key org-read-date-minibuffer-local-map (kbd "M-L") #'org-calendar-forward-month)
+      (define-key org-read-date-minibuffer-local-map (kbd "M-K") #'org-calendar-backward-year)
+      (define-key org-read-date-minibuffer-local-map (kbd "M-J") #'org-calendar-forward-year))
 
     (spacemacs|define-transient-state org-babel
       :title "Org Babel Transient state"
@@ -831,7 +811,7 @@ Headline^^            Visit entry^^               Filter^^                    Da
       "aop" 'spacemacs/org-project-capture-capture
       "po" 'spacemacs/org-project-capture-goto-todos)
     :config
-    (if (file-name-absolute-p org-project-capture-projects-file)
+    (if (and (stringp org-project-capture-projects-file) (file-name-absolute-p org-project-capture-projects-file))
         (progn
           (setq org-project-capture-projects-file org-project-capture-projects-file)
           (push (org-project-capture-project-todo-entry :empty-lines 1)
@@ -1064,12 +1044,20 @@ Headline^^            Visit entry^^               Filter^^                    Da
           org-appear-autoemphasis t
           org-appear-autosubmarkers t)
     :config
-    (when (and (eq org-appear-trigger 'manual)
-               (memq dotspacemacs-editing-style '(vim hybrid)))
-      (add-hook 'org-mode-hook
-                (lambda ()
-                  (add-hook 'evil-insert-state-entry-hook #'org-appear-manual-start nil t)
-                  (add-hook 'evil-insert-state-exit-hook #'org-appear-manual-stop nil t))))))
+    (when (eq org-appear-trigger 'manual)
+      (when (eq dotspacemacs-editing-style 'vim)
+        (add-hook 'org-appear-mode-hook
+                  (lambda ()
+                    (add-hook 'evil-insert-state-entry-hook #'org-appear-manual-start nil t)
+                    (add-hook 'evil-insert-state-exit-hook #'org-appear-manual-stop nil t)
+                    )))
+
+      (when (eq dotspacemacs-editing-style 'hybrid)
+        (add-hook 'org-appear-mode-hook
+                  (lambda ()
+                    (add-hook 'evil-hybrid-state-entry-hook #'org-appear-manual-start nil t)
+                    (add-hook 'evil-hybrid-state-exit-hook #'org-appear-manual-stop nil t)
+                    ))))))
 
 (defun org/init-org-transclusion ()
   (use-package org-transclusion

@@ -31,9 +31,9 @@ file.
 * Basic Concepts
 Gnus is a news reading application. The Gnus terminology can be confusing for
 new users so the basics are listed here:
-- A Newsgroup but can also be a RSS Feed or a mail directory
-- Newsgroups can be assigned to topics which will be used to structure
-  the Group Buffer if Topic Mode is enabled(default).
+- Group :: A Newsgroup but can also be a RSS Feed or a mail directory
+- Topic :: Newsgroups can be assigned to topics which will be used to structure
+           the Group Buffer if Topic Mode is enabled(default).
 
 * Adding news sources
 Adding news sources can be done in your =.spacemacs= file by adding the
@@ -124,7 +124,7 @@ The Gnus layer defines the following variables like this:
   gnus-sum-thread-tree-vertical "│"
   gnus-article-browse-delete-temp t
   gnus-treat-strip-trailing-blank-lines 'last
-  gnus-keep-backlog 'nil
+  gnus-keep-backlog nil
   gnus-summary-display-arrow nil ; Don't show that annoying arrow:
   gnus-mime-display-multipart-related-as-mixed t ; Show more MIME-stuff:
   gnus-auto-select-first nil ; Don't get the first article automatically:

@@ -27,7 +27,6 @@
     emojify
     evil-collection
     evil-surround
-    fill-column-indicator
     ;; forge requires a C compiler on Windows so we disable
     ;; it by default on Windows.
     (forge :toggle (not (spacemacs/system-is-mswindows)))
@@ -69,9 +68,6 @@
     ;; See `git-packages' form in this file.
     (unless (spacemacs/system-is-mswindows)
       (add-to-list 'spacemacs-evil-collection-allowed-list 'forge))))
-
-(defun git/post-init-fill-column-indicator ()
-  (add-hook 'git-commit-mode-hook 'fci-mode))
 
 (defun git/init-helm-git-grep ()
   (use-package helm-git-grep
@@ -151,8 +147,9 @@
     :defer (spacemacs/defer)
     :custom (magit-bury-buffer-function #'magit-restore-window-configuration)
     :init
-    (push "magit: .*" spacemacs-useless-buffers-regexp)
-    (push "magit-.*: .*"  spacemacs-useless-buffers-regexp)
+    (when git-magit-buffers-useless
+      (cl-pushnew "magit: .*" spacemacs-useless-buffers-regexp :test 'equal)
+      (cl-pushnew "magit-.*: .*"  spacemacs-useless-buffers-regexp :test 'equal))
     (spacemacs|require-when-dumping 'magit)
     (setq magit-revision-show-gravatars '("^Author:     " . "^Commit:     "))
     ;; On Windows, we must use Git GUI to enter username and password
@@ -203,6 +200,8 @@
       ("Y" magit-blame-copy-hash)
       ("B" magit-blame :exit t)
       ("Q" nil :exit t))
+    (with-eval-after-load 'git-commit
+      (add-hook 'git-commit-mode-hook 'display-fill-column-indicator-mode))
     (with-eval-after-load 'persp-mode
       (add-hook 'persp-filter-save-buffers-functions
                 'spacemacs//magit-buffer-p))
@@ -353,20 +352,22 @@
                                                 spacemacs-cache-directory)
           forge-add-default-bindings (eq dotspacemacs-editing-style 'emacs))
     (spacemacs/set-leader-keys-for-major-mode 'forge-topic-mode
-      "a" 'forge-edit-topic-assignees
+      "a" 'forge-topic-set-assignees
       "c" 'forge-create-post
       "C" 'forge-checkout-pullreq
       "b" 'forge-browse-topic
       "D" 'forge-delete-comment
       "d" 'forge-post-toggle-draft
       "e" 'forge-edit-post
-      "m" 'forge-edit-topic-marks
+      "m" 'forge-topic-set-marks
       "M" 'forge-create-mark
       "n" 'forge-edit-topic-note
-      "r" 'forge-edit-topic-review-requests
-      "s" 'forge-edit-topic-state
-      "t" 'forge-edit-topic-title
+      "r" 'forge-topic-set-review-requests
+      "s" 'forge-topic-state-menu
+      "t" 'forge-topic-set-title
       "u" 'forge-copy-url-at-point-as-kill)
+    (dolist (mode '(forge-issue-mode forge-pullreq-mode))
+      (spacemacs/inherit-leader-keys-from-parent-mode mode 'forge-topic-mode))
     (spacemacs/set-leader-keys-for-major-mode 'forge-post-mode
       dotspacemacs-major-mode-leader-key 'forge-post-submit
       "c" 'forge-post-submit
